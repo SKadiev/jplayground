@@ -1,7 +1,8 @@
 import * as esbuild from 'esbuild-wasm';
-import { useEffect, useRef, useState } from 'react';
-import ReactDom from 'react-dom';
+import { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { unpkgPathPlugin } from './plugins/unpkg-path-plugin';
+import { fetchPlugin } from './plugins/fetch-plugin';
 
 const App = () => {
   const ref = useRef<any>();
@@ -14,6 +15,9 @@ const App = () => {
       wasmURL: '/esbuild.wasm',
     });
   };
+  useEffect(() => {
+    startService();
+  }, []);
 
   const onClick = async () => {
     if (!ref.current) {
@@ -24,28 +28,23 @@ const App = () => {
       entryPoints: ['index.js'],
       bundle: true,
       write: false,
-      plugins: [unpkgPathPlugin(input)],
+      plugins: [unpkgPathPlugin(), fetchPlugin(input)],
       define: {
         'process.env.NODE_ENV': '"production"',
         global: 'window',
       },
     });
-    console.log(result);
+
+    // console.log(result);
 
     setCode(result.outputFiles[0].text);
   };
-
-  useEffect(() => {
-    startService();
-  }, []);
 
   return (
     <div>
       <textarea
         value={input}
-        onChange={(e) => {
-          setInput(e.target.value);
-        }}
+        onChange={(e) => setInput(e.target.value)}
       ></textarea>
       <div>
         <button onClick={onClick}>Submit</button>
@@ -55,4 +54,4 @@ const App = () => {
   );
 };
 
-ReactDom.render(<App />, document.getElementById('root'));
+ReactDOM.render(<App />, document.querySelector('#root'));
